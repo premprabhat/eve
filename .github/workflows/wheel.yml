@@ -1,0 +1,56 @@
+name: PyPI Wheel
+
+on: [push, pull_request]
+
+jobs:
+  Build-wheel:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        arch: [x86_64, aarch64]
+          
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Set up QEMU
+        if: ${{ matrix.arch == 'aarch64' }}
+        uses: docker/setup-qemu-action@v1          
+      - name: Build wheels
+        env:
+          CIBW_ARCHS: ${{matrix.arch}}
+          CIBW_BUILD: cp3*
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_SKIP: '*-musllinux*'
+        run: |
+          python --version
+          python -m pip install --upgrade pip setuptools
+          pip install cython cibuildwheel
+          cibuildwheel --output-dir dist
+        shell: bash
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist/
+
+  deploy:
+
+    runs-on: ubuntu-latest
+    needs: Build-wheel
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download distributions
+        uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: ${{ secrets.PYPI_USERNAME }}
+          password: ${{ secrets.PYPI_PASSWORD }}
