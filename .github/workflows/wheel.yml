@@ -8,20 +8,14 @@ jobs:
     strategy:
       matrix:
         pyver: [cp37-cp37m, cp38-cp38, cp39-cp39]
-        arch: [x86_64, aarch64]
       fail-fast: false
     runs-on: ubuntu-latest
     env:
       py: /opt/python/${{ matrix.pyver }}/bin/python
-      img: quay.io/pypa/manylinux2014_${{ matrix.arch }}
+      img: quay.io/pypa/manylinux2014_x86_64
           
     steps:
     - uses: actions/checkout@v2
-    
-    - name: Set up QEMU
-      if: ${{ matrix.arch == 'aarch64' }}
-      id: qemu
-      uses: docker/setup-qemu-action@v1
 
     - name: Build wheels
       run: |
@@ -30,14 +24,9 @@ jobs:
           bash -exc '${{ env.py }} -m pip install virtualenv && ${{ env.py }} -m venv .env && \
           source .env/bin/activate && \
           pip install wheel && \
-          python setup.py bdist_wheel --plat-name=manylinux2014_${{ matrix.arch}} && \
+          pip wheel -w DEST_DIR . && \
           find . -name "*whl"
           deactivate'
-
-    - name: Repair wheel wheel
-      run: |
-        docker run --rm -v ${{ github.workspace }}:/ws:rw --workdir=/ws \
-          ${{ env.img }} auditwheel repair dist/*.whl --wheel-dir wheelhouse/
 
     - name: Upload wheels
       uses: actions/upload-artifact@v2
