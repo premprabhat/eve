@@ -25,7 +25,7 @@ jobs:
           bash -exc '${{ env.py }} -m pip install virtualenv && ${{ env.py }} -m venv .env && \
           source .env/bin/activate && \
           pip install wheel && \
-          pip wheel -w DEST_DIR . && \
+          python setup.py bdist_wheel --plat-name=manylinux2014_x86_64 && \
           deactivate'
 
     - name: Upload wheels
