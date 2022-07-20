@@ -33,6 +33,11 @@ jobs:
           python setup.py bdist_wheel --plat-name=manylinux2014_${{ matrix.arch}} && \
           deactivate'
 
+    - name: Repair wheel wheel
+      run: |
+        docker run --rm -v ${{ github.workspace }}:/ws:rw --workdir=/ws \
+          ${{ env.img }} auditwheel repair dist/*.whl --wheel-dir wheelhouse/
+
     - name: Upload wheels
       uses: actions/upload-artifact@v2
       with:
