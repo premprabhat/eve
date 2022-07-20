@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
  build_wheel:
-    name: "Build on ${{ matrix.pyver }} aarch64"
+    name: "Build on ${{ matrix.pyver }} ${{ matrix.arch }}"
     strategy:
       matrix:
         pyver: [cp37-cp37m, cp38-cp38, cp39-cp39]
