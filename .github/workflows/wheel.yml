@@ -4,15 +4,8 @@ on: [push, pull_request]
 
 jobs:
  build_wheel:
-    name: "Build on ${{ matrix.pyver }} ${{ matrix.arch }}"
-    strategy:
-      matrix:
-        pyver: [cp37-cp37m, cp38-cp38, cp39-cp39]
-      fail-fast: false
+    name: "Build wheel"
     runs-on: ubuntu-latest
-    env:
-      py: /opt/python/${{ matrix.pyver }}/bin/python
-      img: quay.io/pypa/manylinux2014_x86_64
           
     steps:
     - uses: actions/checkout@v2
@@ -20,12 +13,11 @@ jobs:
     - name: Build wheels
       run: |
         docker run --rm -v ${{ github.workspace }}:/ws:rw --workdir=/ws \
-          ${{ env.img }} \
-          bash -exc '${{ env.py }} -m pip install virtualenv && ${{ env.py }} -m venv .env && \
+          quay.io/pypa/manylinux2014_x86_64 \
+          bash -exc '/opt/python/cp38-cp38/bin/python -m pip install virtualenv && /opt/python/cp38-cp38/bin/python -m venv .env && \
           source .env/bin/activate && \
           pip install wheel && \
           pip wheel -w ./wheelhouse/ . && \
-          find . -name "*whl"
           deactivate'
 
     - name: Upload wheels
